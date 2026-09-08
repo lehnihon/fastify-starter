@@ -9,6 +9,8 @@ import swaggerPlugin from './plugins/swagger.ts'
 import corsPlugin from './plugins/cors.ts'
 import helmetPlugin from './plugins/helmet.ts'
 import staticPlugin from './plugins/static.ts'
+import formbodyPlugin from './plugins/formbody.ts'
+import multipartPlugin from './plugins/multipart.ts'
 import sensiblePlugin from './plugins/sensible.ts'
 import authPlugin from './plugins/auth.ts'
 import rateLimitPlugin from './plugins/rate-limit.ts'
@@ -37,6 +39,8 @@ export function buildApp(): FastifyInstance {
   void app.register(corsPlugin)
   void app.register(helmetPlugin)
   void app.register(staticPlugin)
+  void app.register(formbodyPlugin)
+  void app.register(multipartPlugin)
   void app.register(sensiblePlugin)
   void app.register(authPlugin)
   void app.register(rateLimitPlugin)
