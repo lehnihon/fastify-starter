@@ -5,7 +5,7 @@ import { users } from '../../db/schema.ts'
 export const userSelectSchema = createSelectSchema(users)
 
 export const userInsertSchema = createInsertSchema(users, {
-  email: z.string().email(),
+  email: z.email(),
 }).omit({ id: true, createdAt: true, updatedAt: true })
 
 export const userUpdateSchema = userInsertSchema.partial()
