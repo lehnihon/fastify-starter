@@ -11,7 +11,9 @@ export default async function setup() {
 
   const databaseUrl = process.env.DATABASE_URL
   if (!databaseUrl) {
-    throw new Error('DATABASE_URL is required to run tests (docker compose up -d)')
+    throw new Error(
+      'DATABASE_URL is required to run tests (docker compose up -d)',
+    )
   }
 
   const client = postgres(databaseUrl, { max: 1 })

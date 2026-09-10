@@ -12,7 +12,11 @@ describe('users CRUD', () => {
     const create = await app.inject({
       method: 'POST',
       url: '/users',
-      payload: { name: 'Ada Lovelace', email: 'ada@example.com', password: 'supersecret' },
+      payload: {
+        name: 'Ada Lovelace',
+        email: 'ada@example.com',
+        password: 'supersecret',
+      },
     })
     expect(create.statusCode).toBe(201)
     const created = create.json()
@@ -34,10 +38,16 @@ describe('users CRUD', () => {
     expect(update.statusCode).toBe(200)
     expect(update.json().name).toBe('Ada Byron')
 
-    const remove = await app.inject({ method: 'DELETE', url: `/users/${created.id}` })
+    const remove = await app.inject({
+      method: 'DELETE',
+      url: `/users/${created.id}`,
+    })
     expect(remove.statusCode).toBe(200)
 
-    const after = await app.inject({ method: 'GET', url: `/users/${created.id}` })
+    const after = await app.inject({
+      method: 'GET',
+      url: `/users/${created.id}`,
+    })
     expect(after.statusCode).toBe(404)
   })
 

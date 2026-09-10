@@ -5,7 +5,11 @@ async function createUser(app: ReturnType<typeof buildApp>) {
   const res = await app.inject({
     method: 'POST',
     url: '/users',
-    payload: { name: 'Ada Lovelace', email: 'ada@example.com', password: 'supersecret' },
+    payload: {
+      name: 'Ada Lovelace',
+      email: 'ada@example.com',
+      password: 'supersecret',
+    },
   })
   expect(res.statusCode).toBe(201)
   return res.json()

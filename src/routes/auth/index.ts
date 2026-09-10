@@ -1,12 +1,11 @@
 import type { FastifyPluginAsync } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
-import { verifyPassword } from '../../lib/password.ts'
-import { usersRepository } from '../users/repository.ts'
 import {
   loginBodySchema,
   loginResponseSchema,
   meResponseSchema,
 } from './schemas.ts'
+import { authService } from './service.ts'
 
 const authRoutes: FastifyPluginAsync = async (fastify) => {
   const app = fastify.withTypeProvider<ZodTypeProvider>()
@@ -19,12 +18,15 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         body: loginBodySchema,
         response: { 200: loginResponseSchema },
       },
+      config: {
+        rateLimit: { max: 10, timeWindow: '1 minute' },
+      },
     },
     async (request, reply) => {
       const { email, password } = request.body
 
-      const user = await usersRepository.findByEmail(email)
-      if (!user || !(await verifyPassword(password, user.password))) {
+      const user = await authService.verifyCredentials(email, password)
+      if (!user) {
         return reply.unauthorized('Invalid credentials')
       }
 
@@ -37,6 +39,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
   app.get(
     '/me',
     {
+      preHandler: app.authenticate,
       schema: {
         tags: ['auth'],
         security: [{ bearerAuth: [] }],
@@ -44,7 +47,6 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request) => {
-      await request.jwtVerify()
       return { sub: request.user.sub, email: request.user.email }
     },
   )

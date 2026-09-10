@@ -2,7 +2,9 @@ import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
 import { z } from 'zod/v4'
 import { users } from '../../db/schema.ts'
 
-export const userSelectSchema = createSelectSchema(users).omit({ password: true })
+export const userSelectSchema = createSelectSchema(users).omit({
+  password: true,
+})
 
 export const userInsertSchema = createInsertSchema(users, {
   email: z.email(),

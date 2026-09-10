@@ -1,7 +1,7 @@
-import Fastify from 'fastify'
-import type { FastifyInstance } from 'fastify'
-import autoLoad from '@fastify/autoload'
 import { join } from 'node:path'
+import autoLoad from '@fastify/autoload'
+import type { FastifyInstance } from 'fastify'
+import Fastify from 'fastify'
 import {
   serializerCompiler,
   validatorCompiler,

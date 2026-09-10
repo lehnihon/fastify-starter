@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { db } from '../../db/index.ts'
-import { users } from '../../db/schema.ts'
 import type { NewUser } from '../../db/schema.ts'
+import { users } from '../../db/schema.ts'
 
 export const usersRepository = {
   async list(limit: number, offset: number) {
