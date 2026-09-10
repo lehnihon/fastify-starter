@@ -1,5 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
+import { verifyPassword } from '../../lib/password.ts'
+import { usersRepository } from '../users/repository.ts'
 import {
   loginBodySchema,
   loginResponseSchema,
@@ -19,17 +21,14 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request, reply) => {
-      // TODO: verify the user against the DB (and hash the password with argon2/bcrypt).
-      const { email } = request.body
+      const { email, password } = request.body
 
-      const token = await reply.jwtSign({ sub: 'demo', email })
+      const user = await usersRepository.findByEmail(email)
+      if (!user || !(await verifyPassword(password, user.password))) {
+        return reply.unauthorized('Invalid credentials')
+      }
 
-      reply.setCookie('token', token, {
-        httpOnly: true,
-        path: '/',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7,
-      })
+      const token = await reply.jwtSign({ sub: user.id, email: user.email })
 
       return { token }
     },
@@ -40,6 +39,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
     {
       schema: {
         tags: ['auth'],
+        security: [{ bearerAuth: [] }],
         response: { 200: meResponseSchema },
       },
     },

@@ -1,5 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
+import { hashPassword } from '../../lib/password.ts'
 import { usersRepository } from './repository.ts'
 import {
   userInsertSchema,
@@ -53,7 +54,11 @@ const userRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const user = await usersRepository.create(request.body)
+      const { password, ...data } = request.body
+      const user = await usersRepository.create({
+        ...data,
+        password: await hashPassword(password),
+      })
       return reply.code(201).send(user)
     },
   )
@@ -69,7 +74,11 @@ const userRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const user = await usersRepository.update(request.params.id, request.body)
+      const { password, ...data } = request.body
+      const user = await usersRepository.update(request.params.id, {
+        ...data,
+        ...(password ? { password: await hashPassword(password) } : {}),
+      })
       if (!user) return reply.notFound('User not found')
       return user
     },

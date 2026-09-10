@@ -10,7 +10,7 @@ Fastify 5 + TypeScript + Drizzle ORM + Swagger/OpenAPI starter.
 - **Database:** PostgreSQL (postgres.js driver)
 - **Validation:** Zod 4 + fastify-type-provider-zod
 - **Docs:** @fastify/swagger + Scalar API Reference (at `/reference`)
-- **Auth:** @fastify/jwt + @fastify/cookie (JWT in httpOnly cookie)
+- **Auth:** @fastify/jwt (JWT via `Authorization: Bearer` header)
 - **Plugins:** @fastify/cors, @fastify/helmet, @fastify/sensible, @fastify/rate-limit
 - **Tests:** Vitest
 
@@ -67,7 +67,7 @@ src/
 │   ├── cors.ts
 │   ├── helmet.ts
 │   ├── sensible.ts
-│   ├── auth.ts            # @fastify/jwt + @fastify/cookie
+│   ├── auth.ts            # @fastify/jwt
 │   └── rate-limit.ts
 └── routes/
     ├── health.ts          # GET /health
@@ -119,13 +119,13 @@ app.post('/', { schema: { body: userInsertSchema, response: { 201: userSelectSch
 ```ts
 app.get('/me', { schema: { response: { 200: meResponseSchema } } },
   async (request) => {
-    await request.jwtVerify()                 // reads the `token` httpOnly cookie
+    await request.jwtVerify()                 // reads the `Authorization: Bearer` header
     return { sub: request.user.sub, email: request.user.email }
   })
 ```
 
-The `@fastify/jwt` plugin is configured to read/sign the JWT from a `token` cookie
-(see `src/plugins/auth.ts`).
+The `@fastify/jwt` plugin is configured to read/sign the JWT from the
+`Authorization: Bearer` header (see `src/plugins/auth.ts`).
 
 ## API docs
 

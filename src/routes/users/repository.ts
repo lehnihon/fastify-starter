@@ -17,6 +17,15 @@ export const usersRepository = {
     return user
   },
 
+  async findByEmail(email: string) {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1)
+    return user
+  },
+
   async create(data: NewUser) {
     const [user] = await db.insert(users).values(data).returning()
     return user!

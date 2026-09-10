@@ -12,10 +12,11 @@ describe('users CRUD', () => {
     const create = await app.inject({
       method: 'POST',
       url: '/users',
-      payload: { name: 'Ada Lovelace', email: 'ada@example.com' },
+      payload: { name: 'Ada Lovelace', email: 'ada@example.com', password: 'supersecret' },
     })
     expect(create.statusCode).toBe(201)
     const created = create.json()
+    expect(created.password).toBeUndefined()
 
     const list = await app.inject({ method: 'GET', url: '/users' })
     expect(list.statusCode).toBe(200)
@@ -54,7 +55,17 @@ describe('users CRUD', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/users',
-      payload: { name: 'X', email: 'invalid' },
+      payload: { name: 'X', email: 'invalid', password: 'supersecret' },
+    })
+    expect(res.statusCode).toBe(400)
+  })
+
+  it('rejects a short password on create', async () => {
+    const app = buildApp()
+    const res = await app.inject({
+      method: 'POST',
+      url: '/users',
+      payload: { name: 'Ada', email: 'ada@example.com', password: 'x' },
     })
     expect(res.statusCode).toBe(400)
   })

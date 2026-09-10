@@ -4,9 +4,9 @@ import postgres from 'postgres'
 
 export default async function setup() {
   try {
-    process.loadEnvFile()
+    process.loadEnvFile('.env.test')
   } catch {
-    // no .env file — rely on the real environment
+    // no .env.test file — rely on the real environment
   }
 
   const databaseUrl = process.env.DATABASE_URL

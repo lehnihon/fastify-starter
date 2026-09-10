@@ -1,6 +1,5 @@
 import fp from 'fastify-plugin'
 import jwt from '@fastify/jwt'
-import cookie from '@fastify/cookie'
 import { env } from '../env.ts'
 
 declare module '@fastify/jwt' {
@@ -13,11 +12,5 @@ declare module '@fastify/jwt' {
 export default fp(async (fastify) => {
   await fastify.register(jwt, {
     secret: env.JWT_SECRET,
-    cookie: {
-      cookieName: 'token',
-      signed: false,
-    },
   })
-
-  await fastify.register(cookie)
 })
