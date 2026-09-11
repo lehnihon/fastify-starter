@@ -4,8 +4,8 @@ import {
   loginBodySchema,
   loginResponseSchema,
   meResponseSchema,
-} from './schemas.ts'
-import { authService } from './service.ts'
+} from '#app/routes/auth/schemas'
+import { authService } from '#app/routes/auth/service'
 
 const authRoutes: FastifyPluginAsync = async (fastify) => {
   const app = fastify.withTypeProvider<ZodTypeProvider>()
@@ -26,13 +26,9 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
       const { email, password } = request.body
 
       const user = await authService.verifyCredentials(email, password)
-      if (!user) {
-        return reply.unauthorized('Invalid credentials')
-      }
-
       const token = await reply.jwtSign({ sub: user.id, email: user.email })
 
-      return { token }
+      return { data: { token } }
     },
   )
 
@@ -47,7 +43,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request) => {
-      return { sub: request.user.sub, email: request.user.email }
+      return { data: { sub: request.user.sub, email: request.user.email } }
     },
   )
 }

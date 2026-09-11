@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm'
-import { hashPassword } from '../lib/password.ts'
-import { client, db } from './index.ts'
-import { users } from './schema.ts'
+import { client, db } from '#app/db/index'
+import { users } from '#app/db/schema'
+import { hashPassword } from '#app/lib/password'
 
 const seedUsers = [
   { name: 'Ada Lovelace', email: 'ada@example.com', password: 'supersecret' },

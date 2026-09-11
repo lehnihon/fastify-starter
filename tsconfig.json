@@ -3,6 +3,9 @@
     "target": "esnext",
     "module": "nodenext",
     "moduleResolution": "nodenext",
+    "paths": {
+      "#app/*": ["./src/*.ts"]
+    },
     "allowImportingTsExtensions": true,
     "rewriteRelativeImportExtensions": true,
     "verbatimModuleSyntax": true,

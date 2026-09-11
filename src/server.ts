@@ -1,5 +1,5 @@
-import { buildApp } from './app.ts'
-import { env } from './env.ts'
+import { buildApp } from '#app/app'
+import { env } from '#app/env'
 
 const app = buildApp()
 

@@ -19,16 +19,23 @@ describe('users CRUD', () => {
       },
     })
     expect(create.statusCode).toBe(201)
-    const created = create.json()
+    const created = create.json().data
     expect(created.password).toBeUndefined()
 
     const list = await app.inject({ method: 'GET', url: '/users' })
     expect(list.statusCode).toBe(200)
-    expect(list.json()).toHaveLength(1)
+    const listBody = list.json()
+    expect(listBody.data).toHaveLength(1)
+    expect(listBody.meta.pagination).toMatchObject({
+      page: 1,
+      limit: 20,
+      total: 1,
+      totalPages: 1,
+    })
 
     const get = await app.inject({ method: 'GET', url: `/users/${created.id}` })
     expect(get.statusCode).toBe(200)
-    expect(get.json()).toMatchObject({ email: 'ada@example.com' })
+    expect(get.json().data).toMatchObject({ email: 'ada@example.com' })
 
     const update = await app.inject({
       method: 'PUT',
@@ -36,7 +43,7 @@ describe('users CRUD', () => {
       payload: { name: 'Ada Byron' },
     })
     expect(update.statusCode).toBe(200)
-    expect(update.json().name).toBe('Ada Byron')
+    expect(update.json().data.name).toBe('Ada Byron')
 
     const remove = await app.inject({
       method: 'DELETE',
@@ -49,6 +56,9 @@ describe('users CRUD', () => {
       url: `/users/${created.id}`,
     })
     expect(after.statusCode).toBe(404)
+    expect(after.json()).toMatchObject({
+      error: { code: 'NOT_FOUND', statusCode: 404 },
+    })
   })
 
   it('returns 404 for a missing user', async () => {
@@ -58,6 +68,7 @@ describe('users CRUD', () => {
       url: '/users/00000000-0000-0000-0000-000000000000',
     })
     expect(res.statusCode).toBe(404)
+    expect(res.json().error.code).toBe('NOT_FOUND')
   })
 
   it('rejects an invalid email on create', async () => {
@@ -68,6 +79,7 @@ describe('users CRUD', () => {
       payload: { name: 'X', email: 'invalid', password: 'supersecret' },
     })
     expect(res.statusCode).toBe(400)
+    expect(res.json().error.code).toBe('VALIDATION_ERROR')
   })
 
   it('rejects a short password on create', async () => {
@@ -78,5 +90,6 @@ describe('users CRUD', () => {
       payload: { name: 'Ada', email: 'ada@example.com', password: 'x' },
     })
     expect(res.statusCode).toBe(400)
+    expect(res.json().error.code).toBe('VALIDATION_ERROR')
   })
 })

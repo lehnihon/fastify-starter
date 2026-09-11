@@ -1,6 +1,6 @@
 import underPressure from '@fastify/under-pressure'
 import fp from 'fastify-plugin'
-import { env } from '../env.ts'
+import { env } from '#app/env'
 
 export default fp(async (fastify) => {
   await fastify.register(underPressure, {

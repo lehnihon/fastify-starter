@@ -1,17 +1,24 @@
+import { randomUUID } from 'node:crypto'
 import { join } from 'node:path'
 import autoLoad from '@fastify/autoload'
-import type { FastifyInstance } from 'fastify'
+import type { FastifyInstance, FastifyServerOptions } from 'fastify'
 import Fastify from 'fastify'
 import {
   serializerCompiler,
   validatorCompiler,
 } from 'fastify-type-provider-zod'
-import { env } from './env.ts'
+import { env } from '#app/env'
 
-export function buildApp(): FastifyInstance {
+export interface BuildAppOptions {
+  logger?: FastifyServerOptions['logger']
+  prefix?: string
+}
+
+export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   const app = Fastify({
     logger:
-      env.NODE_ENV === 'development'
+      options.logger ??
+      (env.NODE_ENV === 'development'
         ? {
             level: env.LOG_LEVEL,
             transport: {
@@ -19,7 +26,11 @@ export function buildApp(): FastifyInstance {
               options: { translateTime: 'HH:MM:ss Z', ignore: 'pid,hostname' },
             },
           }
-        : { level: env.LOG_LEVEL },
+        : { level: env.LOG_LEVEL }),
+    genReqId: (req) => {
+      const id = req.headers['x-request-id']
+      return typeof id === 'string' && id.length > 0 ? id : randomUUID()
+    },
   })
 
   app.setValidatorCompiler(validatorCompiler)
@@ -29,11 +40,16 @@ export function buildApp(): FastifyInstance {
     dir: join(import.meta.dirname, 'plugins'),
   })
 
-  void app.register(autoLoad, {
-    dir: join(import.meta.dirname, 'routes'),
-    dirNameRoutePrefix: true,
-    ignorePattern: /(schemas|repository)\.(ts|js)$/,
-  })
+  void app.register(
+    async (instance) => {
+      await instance.register(autoLoad, {
+        dir: join(import.meta.dirname, 'routes'),
+        dirNameRoutePrefix: true,
+        ignorePattern: /(schemas|repository|service)\.(ts|js)$/,
+      })
+    },
+    { prefix: options.prefix },
+  )
 
   return app
 }

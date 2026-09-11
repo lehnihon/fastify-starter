@@ -2,7 +2,7 @@ import { sql } from 'drizzle-orm'
 import type { FastifyPluginAsync } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { z } from 'zod/v4'
-import { db } from '../db/index.ts'
+import { db } from '#app/db/index'
 
 const okResponseSchema = z.object({ status: z.literal('ok') })
 const unavailableResponseSchema = z.object({ status: z.literal('unavailable') })

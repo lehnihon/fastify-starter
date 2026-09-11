@@ -1,7 +1,8 @@
 import jwt from '@fastify/jwt'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import fp from 'fastify-plugin'
-import { env } from '../env.ts'
+import { env } from '#app/env'
+import { UnauthorizedError } from '#app/lib/errors'
 
 declare module '@fastify/jwt' {
   interface FastifyJWT {
@@ -27,11 +28,11 @@ export default fp(async (fastify) => {
 
   fastify.decorate(
     'authenticate',
-    async (request: FastifyRequest, reply: FastifyReply) => {
+    async (request: FastifyRequest, _reply: FastifyReply) => {
       try {
         await request.jwtVerify()
       } catch {
-        return reply.unauthorized('Invalid or expired token')
+        throw new UnauthorizedError('Invalid or expired token')
       }
 
       request.requestContext.set('user', request.user)

@@ -2,7 +2,7 @@ import type { FastifyPluginCallback } from 'fastify'
 import type { IMetricsPluginOptions } from 'fastify-metrics'
 import * as metrics from 'fastify-metrics'
 import fp from 'fastify-plugin'
-import { env } from '../env.ts'
+import { env } from '#app/env'
 
 export default fp(async (fastify) => {
   if (env.NODE_ENV === 'test') {

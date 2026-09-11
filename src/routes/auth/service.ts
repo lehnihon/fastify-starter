@@ -1,16 +1,16 @@
-import type { User } from '../../db/schema.ts'
-import { verifyPassword } from '../../lib/password.ts'
-import { usersRepository } from '../users/repository.ts'
+import type { User } from '#app/db/schema'
+import { UnauthorizedError } from '#app/lib/errors'
+import { verifyPassword } from '#app/lib/password'
+import { usersRepository } from '#app/routes/users/repository'
 
 export const authService = {
-  async verifyCredentials(
-    email: string,
-    password: string,
-  ): Promise<User | null> {
+  async verifyCredentials(email: string, password: string): Promise<User> {
     const user = await usersRepository.findByEmail(email)
-    if (!user) return null
+    if (!user) throw new UnauthorizedError('Invalid credentials')
 
     const valid = await verifyPassword(password, user.password)
-    return valid ? user : null
+    if (!valid) throw new UnauthorizedError('Invalid credentials')
+
+    return user
   },
 }

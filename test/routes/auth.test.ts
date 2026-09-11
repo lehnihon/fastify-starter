@@ -12,7 +12,7 @@ async function createUser(app: ReturnType<typeof buildApp>) {
     },
   })
   expect(res.statusCode).toBe(201)
-  return res.json()
+  return res.json().data
 }
 
 describe('auth', () => {
@@ -31,15 +31,16 @@ describe('auth', () => {
     })
 
     expect(res.statusCode).toBe(200)
-    expect(res.json().token).toBeTypeOf('string')
+    const { token } = res.json().data
+    expect(token).toBeTypeOf('string')
 
     const me = await app.inject({
       method: 'GET',
       url: '/auth/me',
-      headers: { authorization: `Bearer ${res.json().token}` },
+      headers: { authorization: `Bearer ${token}` },
     })
     expect(me.statusCode).toBe(200)
-    expect(me.json()).toEqual({ sub: user.id, email: 'ada@example.com' })
+    expect(me.json().data).toEqual({ sub: user.id, email: 'ada@example.com' })
   })
 
   it('rejects login with a wrong password', async () => {
@@ -53,6 +54,7 @@ describe('auth', () => {
     })
 
     expect(res.statusCode).toBe(401)
+    expect(res.json().error.code).toBe('UNAUTHORIZED')
   })
 
   it('rejects login with an unknown email', async () => {
@@ -65,6 +67,7 @@ describe('auth', () => {
     })
 
     expect(res.statusCode).toBe(401)
+    expect(res.json().error.code).toBe('UNAUTHORIZED')
   })
 
   it('rejects invalid login body', async () => {
@@ -76,6 +79,7 @@ describe('auth', () => {
     })
 
     expect(res.statusCode).toBe(400)
+    expect(res.json().error.code).toBe('VALIDATION_ERROR')
   })
 
   it('rejects /me without a token', async () => {
@@ -83,5 +87,6 @@ describe('auth', () => {
     const res = await app.inject({ method: 'GET', url: '/auth/me' })
 
     expect(res.statusCode).toBe(401)
+    expect(res.json().error.code).toBe('UNAUTHORIZED')
   })
 })

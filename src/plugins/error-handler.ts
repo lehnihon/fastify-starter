@@ -1,12 +1,15 @@
 import type { FastifyError, FastifyReply, FastifyRequest } from 'fastify'
 import fp from 'fastify-plugin'
+import { AppError } from '#app/lib/errors'
 
 export default fp(async (fastify) => {
   fastify.setNotFoundHandler((request, reply) => {
     reply.code(404).send({
-      statusCode: 404,
-      error: 'Not Found',
-      message: `Route ${request.method} ${request.url} not found`,
+      error: {
+        code: 'NOT_FOUND',
+        statusCode: 404,
+        message: `Route ${request.method} ${request.url} not found`,
+      },
     })
   })
 
@@ -14,10 +17,23 @@ export default fp(async (fastify) => {
     (error: FastifyError, request: FastifyRequest, reply: FastifyReply) => {
       if (error.validation) {
         return reply.code(400).send({
-          statusCode: 400,
-          error: 'Bad Request',
-          message: error.message,
-          details: error.validation,
+          error: {
+            code: 'VALIDATION_ERROR',
+            statusCode: 400,
+            message: error.message,
+            details: error.validation,
+          },
+        })
+      }
+
+      if (error instanceof AppError) {
+        return reply.code(error.statusCode).send({
+          error: {
+            code: error.code,
+            statusCode: error.statusCode,
+            message: error.message,
+            ...(error.details !== undefined ? { details: error.details } : {}),
+          },
         })
       }
 
@@ -28,9 +44,11 @@ export default fp(async (fastify) => {
       }
 
       return reply.code(statusCode).send({
-        statusCode,
-        error: error.name,
-        message: error.message,
+        error: {
+          code: 'INTERNAL_ERROR',
+          statusCode,
+          message: statusCode >= 500 ? 'Internal Server Error' : error.message,
+        },
       })
     },
   )

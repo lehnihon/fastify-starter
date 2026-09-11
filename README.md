@@ -117,13 +117,15 @@ export const userInsertSchema = createInsertSchema(users, { email: z.string().em
   .omit({ id: true, createdAt: true, updatedAt: true })
 ```
 
-Queries live in a `repository.ts`, handlers call the repository:
+Queries live in a `repository.ts`, business logic (hashing, not-found checks)
+in a `service.ts`, and handlers call the service:
 
 ```ts
-app.post('/', { schema: { body: userInsertSchema, response: { 201: userSelectSchema } } },
+// index.ts
+app.post('/', { schema: { body: userInsertSchema, response: { 201: successSchema(userSelectSchema) } } },
   async (request, reply) => {
-    const user = await usersRepository.create(request.body)
-    return reply.code(201).send(user)
+    const user = await usersService.create(request.body)
+    return reply.code(201).send({ data: user })
   })
 ```
 
@@ -132,7 +134,7 @@ app.post('/', { schema: { body: userInsertSchema, response: { 201: userSelectSch
 ```ts
 app.get('/me', { preHandler: app.authenticate, schema: { response: { 200: meResponseSchema } } },
   async (request) => {
-    return { sub: request.user.sub, email: request.user.email }
+    return { data: { sub: request.user.sub, email: request.user.email } }
   })
 ```
 
@@ -140,6 +142,67 @@ The `authenticate` decorator verifies the JWT from the `Authorization: Bearer`
 header and stores the authenticated user in the request context (see
 `src/plugins/auth.ts`). Access it anywhere via
 `fastify.requestContext.get('user')`.
+
+## Conventions
+
+### Layering
+
+`route → service → repository → db`. Routes parse/validate and delegate;
+services hold business logic and throw domain errors; repositories run the
+Drizzle queries. Files are colocated per domain under `src/routes/<domain>/`.
+
+### Errors
+
+Throw domain errors from services (see `src/lib/errors.ts`) instead of
+returning `null`/`undefined` or calling `reply.notFound(...)`:
+
+```ts
+if (!user) throw new NotFoundError('User')
+```
+
+The centralized handler (`src/plugins/error-handler.ts`) turns them into a
+consistent shape:
+
+```json
+{ "error": { "code": "NOT_FOUND", "statusCode": 404, "message": "User not found" } }
+```
+
+Available codes: `NOT_FOUND`, `UNAUTHORIZED`, `FORBIDDEN`, `BAD_REQUEST`,
+`CONFLICT`, `VALIDATION_ERROR`, `INTERNAL_ERROR`.
+
+### Response envelope
+
+Success responses are wrapped in `{ data, meta? }`; errors in `{ error }`.
+
+```json
+// single resource
+{ "data": { "id": "...", "name": "Ada" } }
+
+// paginated list
+{
+  "data": [ ... ],
+  "meta": { "pagination": { "page": 1, "limit": 20, "total": 100, "totalPages": 5 } }
+}
+```
+
+Use the schema helpers in `src/lib/http.ts` (`successSchema`, `paginatedSchema`).
+
+### Request ID
+
+Every request gets an `X-Request-Id` header (incoming value reused when
+provided, otherwise a UUID). It is echoed in the response and stored in the
+request context, so it correlates logs end-to-end.
+
+### Versioning
+
+Pass a prefix to version the API routes:
+
+```ts
+buildApp({ prefix: '/v1' })
+```
+
+`/metrics` and `/reference` stay at the root; route folders keep their
+`dirNameRoutePrefix` behavior under the prefix.
 
 ## API docs
 
