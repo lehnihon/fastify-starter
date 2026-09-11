@@ -1,25 +1,22 @@
-import { beforeEach, describe, expect, it } from 'vitest'
-import { buildApp, resetDb } from '../setup.ts'
+import { describe, expect, it } from 'vitest'
+import { buildApp, uniqueEmail } from '../setup.ts'
 
 async function createUser(app: ReturnType<typeof buildApp>) {
+  const email = uniqueEmail()
   const res = await app.inject({
     method: 'POST',
     url: '/users',
     payload: {
       name: 'Ada Lovelace',
-      email: 'ada@example.com',
+      email,
       password: 'supersecret',
     },
   })
   expect(res.statusCode).toBe(201)
-  return res.json().data
+  return { id: res.json().data.id, email }
 }
 
 describe('auth', () => {
-  beforeEach(async () => {
-    await resetDb()
-  })
-
   it('logs in with valid credentials and returns a token', async () => {
     const app = buildApp()
     const user = await createUser(app)
@@ -27,7 +24,7 @@ describe('auth', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/auth/login',
-      payload: { email: 'ada@example.com', password: 'supersecret' },
+      payload: { email: user.email, password: 'supersecret' },
     })
 
     expect(res.statusCode).toBe(200)
@@ -40,17 +37,17 @@ describe('auth', () => {
       headers: { authorization: `Bearer ${token}` },
     })
     expect(me.statusCode).toBe(200)
-    expect(me.json().data).toEqual({ sub: user.id, email: 'ada@example.com' })
+    expect(me.json().data).toEqual({ sub: user.id, email: user.email })
   })
 
   it('rejects login with a wrong password', async () => {
     const app = buildApp()
-    await createUser(app)
+    const user = await createUser(app)
 
     const res = await app.inject({
       method: 'POST',
       url: '/auth/login',
-      payload: { email: 'ada@example.com', password: 'wrong-password' },
+      payload: { email: user.email, password: 'wrong-password' },
     })
 
     expect(res.statusCode).toBe(401)

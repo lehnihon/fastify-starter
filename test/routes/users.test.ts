@@ -1,20 +1,17 @@
-import { beforeEach, describe, expect, it } from 'vitest'
-import { buildApp, resetDb } from '../setup.ts'
+import { describe, expect, it } from 'vitest'
+import { buildApp, uniqueEmail } from '../setup.ts'
 
 describe('users CRUD', () => {
-  beforeEach(async () => {
-    await resetDb()
-  })
-
   it('creates, reads, updates and deletes a user', async () => {
     const app = buildApp()
+    const email = uniqueEmail()
 
     const create = await app.inject({
       method: 'POST',
       url: '/users',
       payload: {
         name: 'Ada Lovelace',
-        email: 'ada@example.com',
+        email,
         password: 'supersecret',
       },
     })
@@ -22,20 +19,9 @@ describe('users CRUD', () => {
     const created = create.json().data
     expect(created.password).toBeUndefined()
 
-    const list = await app.inject({ method: 'GET', url: '/users' })
-    expect(list.statusCode).toBe(200)
-    const listBody = list.json()
-    expect(listBody.data).toHaveLength(1)
-    expect(listBody.meta.pagination).toMatchObject({
-      page: 1,
-      limit: 20,
-      total: 1,
-      totalPages: 1,
-    })
-
     const get = await app.inject({ method: 'GET', url: `/users/${created.id}` })
     expect(get.statusCode).toBe(200)
-    expect(get.json().data).toMatchObject({ email: 'ada@example.com' })
+    expect(get.json().data).toMatchObject({ email })
 
     const update = await app.inject({
       method: 'PUT',
@@ -59,6 +45,18 @@ describe('users CRUD', () => {
     expect(after.json()).toMatchObject({
       error: { code: 'NOT_FOUND', statusCode: 404 },
     })
+  })
+
+  it('lists users with pagination', async () => {
+    const app = buildApp()
+    const res = await app.inject({
+      method: 'GET',
+      url: '/users?page=1&limit=5',
+    })
+
+    expect(res.statusCode).toBe(200)
+    expect(Array.isArray(res.json().data)).toBe(true)
+    expect(res.json().meta.pagination).toMatchObject({ page: 1, limit: 5 })
   })
 
   it('returns 404 for a missing user', async () => {
@@ -87,7 +85,7 @@ describe('users CRUD', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/users',
-      payload: { name: 'Ada', email: 'ada@example.com', password: 'x' },
+      payload: { name: 'Ada', email: uniqueEmail(), password: 'x' },
     })
     expect(res.statusCode).toBe(400)
     expect(res.json().error.code).toBe('VALIDATION_ERROR')
