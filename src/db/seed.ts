@@ -2,14 +2,31 @@ import { eq } from 'drizzle-orm'
 import { client, db } from '#app/db/index'
 import { users } from '#app/db/schema'
 import { hashPassword } from '#app/lib/password'
+import type { Role } from '#app/lib/roles'
 
-const seedUsers = [
-  { name: 'Ada Lovelace', email: 'ada@example.com', password: 'supersecret' },
-  { name: 'Grace Hopper', email: 'grace@example.com', password: 'supersecret' },
+const seedUsers: Array<{
+  name: string
+  email: string
+  password: string
+  role: Role
+}> = [
+  {
+    name: 'Ada Lovelace',
+    email: 'ada@example.com',
+    password: 'supersecret',
+    role: 'admin',
+  },
+  {
+    name: 'Grace Hopper',
+    email: 'grace@example.com',
+    password: 'supersecret',
+    role: 'user',
+  },
   {
     name: 'Linus Torvalds',
     email: 'linus@example.com',
     password: 'supersecret',
+    role: 'user',
   },
 ]
 

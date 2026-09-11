@@ -15,6 +15,13 @@
       "when": 1788982587501,
       "tag": "0001_smiling_randall_flagg",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789156738412,
+      "tag": "0002_normal_doomsday",
+      "breakpoints": true
     }
   ]
 }

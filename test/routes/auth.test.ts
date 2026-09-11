@@ -37,7 +37,11 @@ describe('auth', () => {
       headers: { authorization: `Bearer ${token}` },
     })
     expect(me.statusCode).toBe(200)
-    expect(me.json().data).toEqual({ sub: user.id, email: user.email })
+    expect(me.json().data).toEqual({
+      sub: user.id,
+      email: user.email,
+      role: 'user',
+    })
   })
 
   it('rejects login with a wrong password', async () => {

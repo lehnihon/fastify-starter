@@ -11,5 +11,9 @@ export const loginResponseSchema = successSchema(
 )
 
 export const meResponseSchema = successSchema(
-  z.object({ sub: z.string(), email: z.string() }),
+  z.object({
+    sub: z.string(),
+    email: z.string(),
+    role: z.enum(['user', 'admin']),
+  }),
 )
