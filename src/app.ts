@@ -45,7 +45,6 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
       await instance.register(autoLoad, {
         dir: join(import.meta.dirname, 'routes'),
         dirNameRoutePrefix: true,
-        ignorePattern: /(schemas|repository|service)\.(ts|js)$/,
       })
     },
     { prefix: options.prefix },

@@ -1,15 +1,17 @@
 import type { FastifyPluginAsync } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { authenticated } from '#app/lib/authenticated'
-import { paginatedSchema, successSchema } from '#app/lib/http'
 import {
+  userCreatedResponse,
   userInsertSchema,
   userListQuerySchema,
+  userListResponse,
   userParamsSchema,
-  userSelectSchema,
+  userResponse,
+  userSchema,
   userUpdateSchema,
-} from '#app/routes/users/schemas'
-import { usersService } from '#app/routes/users/service'
+} from '#app/modules/users/schemas'
+import { usersService } from '#app/modules/users/service'
 
 const userRoutes: FastifyPluginAsync = async (fastify) => {
   const app = fastify.withTypeProvider<ZodTypeProvider>()
@@ -18,11 +20,10 @@ const userRoutes: FastifyPluginAsync = async (fastify) => {
   app.get(
     '/:id',
     {
-      schema: {
-        tags: ['users'],
+      schema: userSchema({
         params: userParamsSchema,
-        response: { 200: successSchema(userSelectSchema) },
-      },
+        response: userResponse,
+      }),
     },
     async (request) => {
       return { data: await usersService.findById(request.params.id) }
@@ -32,11 +33,10 @@ const userRoutes: FastifyPluginAsync = async (fastify) => {
   app.post(
     '/',
     {
-      schema: {
-        tags: ['users'],
+      schema: userSchema({
         body: userInsertSchema,
-        response: { 201: successSchema(userSelectSchema) },
-      },
+        response: userCreatedResponse,
+      }),
     },
     async (request, reply) => {
       const user = await usersService.create(request.body)
@@ -52,12 +52,10 @@ const userRoutes: FastifyPluginAsync = async (fastify) => {
       app.get(
         '/',
         {
-          schema: {
-            tags: ['users'],
-            security: [{ bearerAuth: [] }],
+          schema: userSchema({
             querystring: userListQuerySchema,
-            response: { 200: paginatedSchema(userSelectSchema.array()) },
-          },
+            response: userListResponse,
+          }),
         },
         async (request) => {
           return usersService.list(request.query)
@@ -67,13 +65,11 @@ const userRoutes: FastifyPluginAsync = async (fastify) => {
       app.put(
         '/:id',
         {
-          schema: {
-            tags: ['users'],
-            security: [{ bearerAuth: [] }],
+          schema: userSchema({
             params: userParamsSchema,
             body: userUpdateSchema,
-            response: { 200: successSchema(userSelectSchema) },
-          },
+            response: userResponse,
+          }),
         },
         async (request) => {
           return {
@@ -93,12 +89,10 @@ const userRoutes: FastifyPluginAsync = async (fastify) => {
         app.delete(
           '/:id',
           {
-            schema: {
-              tags: ['users'],
-              security: [{ bearerAuth: [] }],
+            schema: userSchema({
               params: userParamsSchema,
-              response: { 200: successSchema(userSelectSchema) },
-            },
+              response: userResponse,
+            }),
           },
           async (request) => {
             return { data: await usersService.remove(request.params.id) }

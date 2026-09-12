@@ -2,11 +2,12 @@ import type { FastifyPluginAsync } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { authenticated } from '#app/lib/authenticated'
 import {
+  authSchema,
   loginBodySchema,
   loginResponseSchema,
   meResponseSchema,
-} from '#app/routes/auth/schemas'
-import { authService } from '#app/routes/auth/service'
+} from '#app/modules/auth/schemas'
+import { authService } from '#app/modules/auth/service'
 
 const authRoutes: FastifyPluginAsync = async (fastify) => {
   const app = fastify.withTypeProvider<ZodTypeProvider>()
@@ -15,11 +16,10 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
   app.post(
     '/login',
     {
-      schema: {
-        tags: ['auth'],
+      schema: authSchema({
         body: loginBodySchema,
         response: { 200: loginResponseSchema },
-      },
+      }),
       config: {
         rateLimit: { max: 10, timeWindow: '1 minute' },
       },
@@ -46,11 +46,9 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
       app.get(
         '/me',
         {
-          schema: {
-            tags: ['auth'],
-            security: [{ bearerAuth: [] }],
+          schema: authSchema({
             response: { 200: meResponseSchema },
-          },
+          }),
         },
         async (request) => {
           return {

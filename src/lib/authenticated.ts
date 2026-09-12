@@ -9,6 +9,13 @@ export function authenticated(
     await fastify.register(async (instance) => {
       instance.addHook('preHandler', fastify.authenticate)
 
+      instance.addHook('onRoute', (routeOptions) => {
+        routeOptions.schema = {
+          security: [{ bearerAuth: [] }],
+          ...routeOptions.schema,
+        }
+      })
+
       if (roles.length > 0) {
         instance.addHook('preHandler', fastify.authorize(...roles))
       }

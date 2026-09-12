@@ -1,5 +1,7 @@
 import { z } from 'zod/v4'
-import { successSchema } from '#app/lib/http'
+import { schemaFor, successSchema } from '#app/lib/http'
+
+export const authSchema = schemaFor('auth')
 
 export const loginBodySchema = z.object({
   email: z.email(),

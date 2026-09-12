@@ -1,7 +1,7 @@
 import type { User } from '#app/db/schema'
 import { UnauthorizedError } from '#app/lib/errors'
 import { verifyPassword } from '#app/lib/password'
-import { usersRepository } from '#app/routes/users/repository'
+import { usersRepository } from '#app/modules/users/repository'
 
 export const authService = {
   async verifyCredentials(email: string, password: string): Promise<User> {

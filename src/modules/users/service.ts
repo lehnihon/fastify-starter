@@ -1,6 +1,6 @@
 import { NotFoundError } from '#app/lib/errors'
 import { hashPassword } from '#app/lib/password'
-import { usersRepository } from '#app/routes/users/repository'
+import { usersRepository } from '#app/modules/users/repository'
 
 export interface CreateUserInput {
   name: string
